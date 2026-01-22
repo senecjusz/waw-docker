@@ -9,14 +9,14 @@
 **/acme/*.json
 **/acme/*
 
-# typowe śmieci
+# typowe smieci 
 **/*.log
 **/*.tmp
 **/*.bak
 **/*~ 
 .DS_Store
 
-# jeżeli gdzieś trzymasz lokalne dane obok stacka (lepiej nie, ale bywa)
+# na wypadek gdyby okok stack trzymane byly lokalne dane
 **/data/
 **/datastore/
 
