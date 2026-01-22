@@ -1,0 +1,22 @@
+services:
+  socks5:
+    image: ${SOCKS5_IMAGE}
+    container_name: socks5
+    restart: unless-stopped
+
+    environment:
+      - REQUIRE_AUTH=false
+      - PROXY_USER=${PROXY_USER}
+      - PROXY_PASSWORD=${PROXY_PASSWORD}
+
+    ports:
+      # LAN
+      - "${BIND_LAN_IP}:${SOCKS5_PORT}:1080/tcp"
+      # Tailscale
+      - "${BIND_TS_IP}:${SOCKS5_PORT}:1080/tcp"
+    networks:
+      - socksnet
+
+networks:
+  socksnet:
+    driver: bridge
