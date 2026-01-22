@@ -1,0 +1,77 @@
+services:
+  traefik:
+    image: ${TRAEFIK_IMAGE}
+    container_name: traefik
+    restart: unless-stopped
+
+    command:
+      - --log.level=${TRAEFIK_LOG_LEVEL}
+
+      - --api=true
+      - --api.dashboard=true
+
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=proxy
+
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/etc/traefik/acme/acme.json
+      - --certificatesresolvers.le.acme.dnschallenge=true
+      - --certificatesresolvers.le.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.le.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+
+    ports:
+      - "${BIND_LAN_IP}:80:80"
+      - "${BIND_LAN_IP}:443:443"
+      - "${BIND_TS_IP}:80:80"
+      - "${BIND_TS_IP}:443:443"
+
+    networks:
+      - proxy
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /srv/data/traefik/acme:/etc/traefik/acme
+
+    labels:
+      - traefik.enable=true
+
+      - traefik.http.routers.traefik.rule=Host(`traefik.${HOST_SUFFIX_IN}`) || Host(`traefik.${HOST_SUFFIX_TS}`)
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls=true
+      - traefik.http.routers.traefik.tls.certresolver=le
+      - traefik.http.routers.traefik.service=api@internal
+
+      - traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_BASIC_AUTH_USERS}
+      - traefik.http.routers.traefik.middlewares=traefik-auth
+
+      - traefik.http.routers.traefik.tls.domains[0].main=${HOST_SUFFIX_IN}
+      - traefik.http.routers.traefik.tls.domains[0].sans=*.${HOST_SUFFIX_IN}
+      - traefik.http.routers.traefik.tls.domains[1].main=${HOST_SUFFIX_TS}
+      - traefik.http.routers.traefik.tls.domains[1].sans=*.${HOST_SUFFIX_TS}
+
+  whoami:
+    image: traefik/whoami
+    container_name: whoami
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.whoami.rule=Host(`whoami.${HOST_SUFFIX_IN}`) || Host(`whoami.${HOST_SUFFIX_TS}`)
+      - traefik.http.routers.whoami.entrypoints=websecure
+      - traefik.http.routers.whoami.tls=true
+      - traefik.http.routers.whoami.tls.certresolver=le
+      - traefik.http.services.whoami.loadbalancer.server.port=80
+
+networks:
+  proxy:
+    external: true
