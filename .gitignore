@@ -19,3 +19,14 @@
 # jeżeli gdzieś trzymasz lokalne dane obok stacka (lepiej nie, ale bywa)
 **/data/
 **/datastore/
+
+# secrets / local-only
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.template
+
+# ACME private keys
+**/acme.json
+**/acme/*.json
+**/acme/*
