@@ -1,0 +1,21 @@
+# env (sekrety / IP / domeny)
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.template
+
+# ACME (klucze prywatne)
+**/acme.json
+**/acme/*.json
+**/acme/*
+
+# typowe śmieci
+**/*.log
+**/*.tmp
+**/*.bak
+**/*~ 
+.DS_Store
+
+# jeżeli gdzieś trzymasz lokalne dane obok stacka (lepiej nie, ale bywa)
+**/data/
+**/datastore/
